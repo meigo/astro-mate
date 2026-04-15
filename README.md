@@ -6,7 +6,8 @@ The stack is locked and explicit so the agent can't guess-and-fail:
 
 - Astro `^6.0.0`
 - Tailwind CSS `^4.0.0` (wired via `@tailwindcss/vite` — not the deprecated `@astrojs/tailwind`)
-- Biome `^1.9.4` (linter + formatter — no ESLint, no Prettier)
+- Biome `^1.9.4` (linter + formatter for `.ts` / `.js` / `.json` — no ESLint)
+- Prettier `^3.3.0` + `prettier-plugin-astro` (formatter for `.astro` — Biome ignores those)
 - TypeScript strict (`astro/tsconfigs/strict`)
 - `astro check` for `.astro` type-checking
 - The [publishing-astro-websites skill](https://github.com/spillwavesolutions/publishing-astro-websites-agentic-skill) installed into `.claude/skills/`
@@ -77,10 +78,10 @@ You'll need to authenticate with the platform once (`wrangler login`, `vercel lo
 
 ## What it does, step by step
 
-1. **Scaffolds** a fresh Astro project into the current directory (empty required) with every config file pinned (`package.json`, `astro.config.mjs`, `tsconfig.json`, `biome.json`, `Layout.astro`, `global.css`). If you picked a deploy target, the platform config and `npm run deploy` script are written too. Runs `npm install`, commits the scaffold.
+1. **Scaffolds** a fresh Astro project into the current directory (empty required) with every config file pinned (`package.json`, `astro.config.mjs`, `tsconfig.json`, `biome.json`, `.prettierrc.json`, `Layout.astro`, `global.css`). If you picked a deploy target, the platform config and `npm run deploy` script are written too. Runs `npm install`, commits the scaffold.
 2. **Installs** the publishing-astro-websites skill into `.claude/skills/` and writes a permissive `.claude/settings.json`. Saves your model + deploy choice to `.astro-mate.json` so `fix` can reuse them.
-3. **Invokes Claude Code** in the project directory with an explicit prompt that declares the locked stack, points at the installed skill, and demands `astro check` + `biome check` + `astro build` all pass.
-4. **Verifies** by running those three commands itself after the agent exits.
+3. **Invokes Claude Code** in the project directory with an explicit prompt that declares the locked stack, points at the installed skill, and demands `astro check` + `biome check` + `prettier check` + `astro build` all pass.
+4. **Verifies** by running those four commands itself after the agent exits.
 5. **Retries** on verification failure — up to `--max-retries` times — feeding the previous error back to the agent.
 6. **Fails honestly**. After the retry budget is spent, it prints the last failure and stops. No infinite loops, no silent "success".
 
@@ -88,7 +89,7 @@ You'll need to authenticate with the platform once (`wrangler login`, `vercel lo
 
 - One site per run, serial.
 - Your prompt goes straight to the agent — no intake interview.
-- Verification is hardcoded: `astro check`, `biome check`, `astro build`.
+- Verification is hardcoded: `astro check`, `biome check`, `prettier check`, `astro build`.
 - Claude Code only (for now).
 - Builds sites, not test suites — no test scaffolding.
 
