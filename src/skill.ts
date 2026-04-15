@@ -63,6 +63,7 @@ function ensureClaudeSettings(targetDir: string): void {
         'Bash(npm:*)',
         'Bash(npx:*)',
         'Bash(biome:*)',
+        'Bash(prettier:*)',
         'Bash(astro:*)',
         'Bash(git:*)',
       ],

@@ -2,6 +2,8 @@ export const STACK = {
   astro: '^6.0.0',
   tailwind: '^4.0.0',
   biome: '^1.9.4',
+  prettier: '^3.3.0',
+  prettierPluginAstro: '^0.14.0',
   typescript: '^5.7.0',
   astroCheck: '^0.9.0',
 } as const;
@@ -13,7 +15,8 @@ export const SKILL_DIR_IN_REPO = 'publishing-astro-websites';
 export const STACK_SUMMARY = [
   `Astro ${STACK.astro}`,
   `Tailwind CSS ${STACK.tailwind} (via @tailwindcss/vite plugin)`,
-  `Biome ${STACK.biome} (lint + format)`,
+  `Biome ${STACK.biome} (lint + format for .ts/.js/.json)`,
+  `Prettier ${STACK.prettier} + prettier-plugin-astro ${STACK.prettierPluginAstro} (format for .astro)`,
   `TypeScript ${STACK.typescript} (strict)`,
   '`astro check` for type-checking .astro files',
 ].join(', ');

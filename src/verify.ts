@@ -23,6 +23,7 @@ export interface VerifyResult {
 const STEPS: VerifyStep[] = [
   { name: 'astro check', command: 'npm', args: ['run', 'astro:check', '--silent'] },
   { name: 'biome check', command: 'npm', args: ['run', 'biome:check', '--silent'] },
+  { name: 'prettier check', command: 'npm', args: ['run', 'prettier:check', '--silent'] },
   { name: 'astro build', command: 'npm', args: ['run', 'build', '--silent'] },
 ];
 

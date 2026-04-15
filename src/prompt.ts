@@ -32,7 +32,8 @@ The project has already been scaffolded for you. Files in place:
 - \`src/styles/global.css\` — contains \`@import "tailwindcss";\`. This is the Tailwind v4 entry.
 - \`src/layouts/Layout.astro\` — imports \`global.css\`. Add content to this layout; do not create a second global stylesheet.
 - \`tsconfig.json\` — extends \`astro/tsconfigs/strict\`. Keep strict mode.
-- \`biome.json\` — Biome is the only linter/formatter. Do not add ESLint or Prettier.
+- \`biome.json\` — Biome is the only linter/formatter for \`.ts\` / \`.js\` / \`.json\`. \`.astro\` files are ignored by Biome.
+- \`.prettierrc.json\` + \`.prettierignore\` — Prettier + \`prettier-plugin-astro\` is the only formatter for \`.astro\` files. Do not run Prettier against \`.ts\` / \`.js\` / \`.json\`; that is Biome's territory.
 - \`.claude/skills/${SKILL_DIR_IN_REPO}/\` — the publishing-astro-websites skill. Consult it for content collections, deployment, i18n, mermaid, etc.
 
 ## Required outcome
@@ -41,29 +42,31 @@ The project has already been scaffolded for you. Files in place:
 2. Use Tailwind utility classes in \`.astro\` files directly. Keep \`global.css\` minimal (only \`@import "tailwindcss";\` plus genuinely global rules).
 3. Prefer \`.astro\` components over client-side JS. Only hydrate (\`client:*\` directives) when truly interactive.
 4. All text must pass \`astro check\` with zero errors.
-5. All code must pass \`biome check src/\` with zero errors (auto-fix with \`npm run biome:fix\` when safe).
-6. \`npm run build\` must succeed with no warnings that would break production.
+5. All \`.ts\` / \`.js\` / \`.json\` must pass \`biome check src/\` with zero errors (auto-fix with \`npm run biome:fix\` when safe).
+6. All \`.astro\` files must pass \`prettier --check "**/*.astro"\` with zero errors (auto-fix with \`npm run prettier:fix\` when safe).
+7. \`npm run build\` must succeed with no warnings that would break production.
 
-## Your verification loop — run all three, fix until green
+## Your verification loop — run all four, fix until green
 
 Before exiting, **you must** run every one of these and iterate until each returns 0:
 
 \`\`\`bash
 npm run astro:check
 npm run biome:check
+npm run prettier:check
 npm run build
 \`\`\`
 
 If an error appears, read it carefully, fix the root cause, and run the failing command again. Do not suppress errors with \`any\`, \`@ts-ignore\`, or biome \`// biome-ignore\` directives unless there is a genuinely unavoidable reason — and if you must, add a short comment explaining why.
 
-Keep going until all three commands exit 0. Do not exit early claiming "the important parts work" — the verification loop is the definition of done.
+Keep going until all four commands exit 0. Do not exit early claiming "the important parts work" — the verification loop is the definition of done.
 
 ## Scope discipline
 
 - Do NOT install extra dependencies unless the user's prompt makes them necessary. No UI kits, no icon libraries, no analytics, no CMS. If the prompt asks for a feature that genuinely needs one (e.g. MDX, sitemap, RSS), install the official Astro integration.
 - Do NOT create tests unless the user asked for them. This tool is for generating sites, not test suites.
 - Do NOT touch files outside this project directory.
-- Do NOT modify \`.claude/\` or \`biome.json\` or the Tailwind wiring.
+- Do NOT modify \`.claude/\` or \`biome.json\` or \`.prettierrc.json\` or the Tailwind wiring.
 
 ## Commit
 
