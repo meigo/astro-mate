@@ -4,11 +4,14 @@ A focused CLI that generates **Astro v6 + Tailwind v4 + Biome** websites with Cl
 
 The stack is locked and explicit so the agent can't guess-and-fail:
 
-- Astro `^6.0.0`
-- Tailwind CSS `^4.0.0` (wired via `@tailwindcss/vite` — not the deprecated `@astrojs/tailwind`)
-- Biome `^1.9.4` (linter + formatter for `.ts` / `.js` / `.json` — no ESLint)
-- Prettier `^3.3.0` + `prettier-plugin-astro` (formatter for `.astro` — Biome ignores those)
-- TypeScript strict (`astro/tsconfigs/strict`)
+- Astro `^6.4.2`
+- Tailwind CSS `^4.3.0` (wired via `@tailwindcss/vite` — not the deprecated `@astrojs/tailwind`)
+- `@astrojs/sitemap` `^3.7.3` (pre-wired; emits `sitemap-index.xml`)
+- Astro **Fonts API** with **Inter** (self-hosted; wired to Tailwind `--font-sans`/`--font-heading`)
+- Biome `^2.4.16` (linter + formatter for `.ts` / `.js` / `.json` — no ESLint)
+- Prettier `^3.8.3` + `prettier-plugin-astro` (formatter for `.astro` — Biome ignores those)
+- TypeScript `^6.0.0` strict (`astro/tsconfigs/strict`)
+- Svelte `^5.56.0` + `@astrojs/svelte` `^8.1.2` — designated interactivity framework, installed on demand
 - `astro check` for `.astro` type-checking
 - The [publishing-astro-websites skill](https://github.com/spillwavesolutions/publishing-astro-websites-agentic-skill) installed into `.claude/skills/`
 
@@ -52,16 +55,17 @@ astro-mate fix
 `fix` remembers the model (and deploy target) that `new` picked by reading `.astro-mate.json`. Override per-run with flags:
 
 ```bash
-astro-mate new --model claude-opus-4-6 --deploy cloudflare "marketing site for a coffee roastery"
-astro-mate fix --model claude-haiku-4-5-20251001 "tighten the hero copy"
+astro-mate new --model opus --deploy cloudflare --site https://roastery.example "marketing site for a coffee roastery"
+astro-mate fix --model haiku "tighten the hero copy"
 ```
 
 ### Options
 
 | Flag | Default | What it does |
 |---|---|---|
-| `--model <id>` | interactive on `new`, persisted for `fix` | `claude-sonnet-4-6`, `claude-opus-4-6`, `claude-haiku-4-5-20251001` |
+| `--model <id>` | interactive on `new`, persisted for `fix` | `sonnet`, `opus`, `haiku` (dynamic latest of each tier), or a full ID like `claude-opus-4-8` |
 | `--deploy <target>` | interactive on `new` | `none`, `cloudflare`, `vercel`, `netlify` |
+| `--site <url>` | interactive on `new` | Production URL used for canonical tags + sitemap. Skippable; persisted for `fix`. |
 | `--max-retries <n>` | `3` | Outer retry budget when verification fails |
 | `--timeout <seconds>` | `3600` | Per-attempt agent timeout |
 
@@ -76,9 +80,30 @@ npm run deploy      # e.g. `wrangler pages deploy dist`
 
 You'll need to authenticate with the platform once (`wrangler login`, `vercel login`, `netlify login`) before the first deploy.
 
+### SEO & AI discoverability
+
+Every scaffold ships an SEO baseline so generated sites are discoverable from day one:
+
+- **`SEO.astro`** — a head component wired through `Layout.astro`: title, description, canonical URL, Open Graph, Twitter Card, and a JSON-LD slot. Pass `title` + `description` per page.
+- **`@astrojs/sitemap`** — pre-installed; builds `sitemap-index.xml`.
+- **`public/robots.txt`** — allows all crawlers (incl. GPTBot, ClaudeBot, PerplexityBot, OAI-SearchBot, Google-Extended) and points at the sitemap.
+- **Canonical + sitemap** need a real `site` URL — set it at `new` time (prompt or `--site`), or edit the `https://example.com` placeholder in `astro.config.mjs` later.
+
+There is intentionally **no `llms.txt`**: as of 2026 the major AI crawlers skip it and read HTML directly. The agentic-SEO story here is structured data (JSON-LD) + an AI-friendly `robots.txt` + clean semantic HTML — the things AI search actually consumes.
+
+### Fonts
+
+The scaffold wires Astro's built-in **Fonts API** (no extra dependency; the font is fetched and self-hosted at build — no runtime Google request, no layout shift) with **Inter** as a build-safe default. Two Tailwind theme variables are exposed — `--font-sans` (body) and `--font-heading` (headings) — both pointing at Inter by default, so the untouched scaffold renders one unified font.
+
+When you describe your site, the agent picks a Google Font (or a heading/body pairing) that fits its tone — a refined serif for a law firm, a geometric sans for a SaaS, and so on — by updating `astro.config.mjs`, `Layout.astro`, and `global.css`. Leaving Inter is always valid.
+
+### Interactivity (Svelte)
+
+Sites are static `.astro` by default. When a prompt genuinely needs client-side interactivity, **Svelte** is the designated framework: the agent installs `@astrojs/svelte` + `svelte` (pinned for compatibility), registers the integration, and hydrates with the narrowest `client:*` directive. No React/Vue/vanilla shims are added — and nothing Svelte ships unless interactivity is actually needed.
+
 ## What it does, step by step
 
-1. **Scaffolds** a fresh Astro project into the current directory (empty required) with every config file pinned (`package.json`, `astro.config.mjs`, `tsconfig.json`, `biome.json`, `.prettierrc.json`, `Layout.astro`, `global.css`). If you picked a deploy target, the platform config and `npm run deploy` script are written too. Runs `npm install`, commits the scaffold.
+1. **Scaffolds** a fresh Astro project into the current directory (empty required) with every config file pinned (`package.json`, `astro.config.mjs` — including sitemap + Fonts API wiring, `tsconfig.json`, `biome.json`, `.prettierrc.json`, `Layout.astro`, `SEO.astro`, `global.css`, `public/robots.txt`). If you picked a deploy target, the platform config and `npm run deploy` script are written too. Runs `npm install`, commits the scaffold.
 2. **Installs** the publishing-astro-websites skill into `.claude/skills/` and writes a permissive `.claude/settings.json`. Saves your model + deploy choice to `.astro-mate.json` so `fix` can reuse them.
 3. **Invokes Claude Code** in the project directory with an explicit prompt that declares the locked stack, points at the installed skill, and demands `astro check` + `biome check` + `prettier check` + `astro build` all pass.
 4. **Verifies** by running those four commands itself after the agent exits.
