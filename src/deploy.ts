@@ -23,19 +23,19 @@ const DEPLOY_CONFIGS: Record<
   (projectName: string) => DeployConfig
 > = {
   cloudflare: (name) => ({
-    devDeps: { wrangler: '^3.90.0' },
+    devDeps: { wrangler: '^4.95.0' },
     deployScript: 'wrangler pages deploy dist',
     platformFile: {
       path: 'wrangler.toml',
       contents: `name = "${name}"
-compatibility_date = "2024-11-01"
+compatibility_date = "2026-05-01"
 pages_build_output_dir = "dist"
 `,
     },
     gitignoreExtras: ['.wrangler/'],
   }),
   vercel: () => ({
-    devDeps: { vercel: '^37.0.0' },
+    devDeps: { vercel: '^54.6.1' },
     deployScript: 'vercel deploy --prod --yes',
     platformFile: {
       path: 'vercel.json',
@@ -53,7 +53,7 @@ pages_build_output_dir = "dist"
     gitignoreExtras: ['.vercel/'],
   }),
   netlify: () => ({
-    devDeps: { 'netlify-cli': '^17.0.0' },
+    devDeps: { 'netlify-cli': '^26.0.2' },
     deployScript: 'netlify deploy --prod --dir=dist',
     platformFile: {
       path: 'netlify.toml',
