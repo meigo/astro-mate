@@ -133,13 +133,21 @@ function packageJson(name: string): string {
 
 function astroConfig(site: string, isPlaceholder: boolean): string {
   const todo = isPlaceholder ? '  // TODO: set your production URL\n' : '';
-  return `import { defineConfig } from 'astro/config';
+  return `import { defineConfig, fontProviders } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 
 export default defineConfig({
 ${todo}  site: '${site}',
   integrations: [sitemap()],
+  fonts: [
+    {
+      provider: fontProviders.google(),
+      name: 'Inter',
+      cssVariable: '--font-inter',
+      weights: [400, 500, 600, 700],
+    },
+  ],
   vite: {
     plugins: [tailwindcss()],
   },
@@ -312,6 +320,7 @@ function layout(): string {
   return `---
 import '../styles/global.css';
 import SEO from '../components/SEO.astro';
+import { Font } from 'astro:assets';
 
 interface Props {
   title: string;
@@ -341,6 +350,7 @@ const defaultJsonLd = {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
+    <Font cssVariable="--font-inter" />
     <SEO
       title={title}
       description={description}
@@ -351,7 +361,7 @@ const defaultJsonLd = {
       jsonLd={jsonLd ?? defaultJsonLd}
     />
   </head>
-  <body class="min-h-screen bg-white text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
+  <body class="min-h-screen bg-white font-sans text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
     <slot />
   </body>
 </html>
@@ -380,6 +390,22 @@ import Layout from '../layouts/Layout.astro';
 
 function globalCss(): string {
   return `@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+  }
+}
 `;
 }
 
