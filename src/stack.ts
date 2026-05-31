@@ -1,11 +1,12 @@
 export const STACK = {
-  astro: '^6.0.0',
-  tailwind: '^4.0.0',
-  biome: '^1.9.4',
-  prettier: '^3.3.0',
-  prettierPluginAstro: '^0.14.0',
-  typescript: '^5.7.0',
-  astroCheck: '^0.9.0',
+  astro: '^6.4.2',
+  tailwind: '^4.3.0',
+  sitemap: '^3.7.3',
+  biome: '^2.4.16',
+  prettier: '^3.8.3',
+  prettierPluginAstro: '^0.14.1',
+  typescript: '^6.0.0',
+  astroCheck: '^0.9.9',
 } as const;
 
 export const SKILL_REPO =
@@ -15,6 +16,7 @@ export const SKILL_DIR_IN_REPO = 'publishing-astro-websites';
 export const STACK_SUMMARY = [
   `Astro ${STACK.astro}`,
   `Tailwind CSS ${STACK.tailwind} (via @tailwindcss/vite plugin)`,
+  `@astrojs/sitemap ${STACK.sitemap} (already wired; emits sitemap-index.xml at build)`,
   `Biome ${STACK.biome} (lint + format for .ts/.js/.json)`,
   `Prettier ${STACK.prettier} + prettier-plugin-astro ${STACK.prettierPluginAstro} (format for .astro)`,
   `TypeScript ${STACK.typescript} (strict)`,
@@ -22,11 +24,7 @@ export const STACK_SUMMARY = [
 ].join(', ');
 
 export const MODEL_OPTIONS: { value: string; label: string; hint?: string }[] = [
-  { value: 'claude-sonnet-4-6', label: 'Claude Sonnet 4.6', hint: 'balanced, fast' },
-  { value: 'claude-opus-4-6', label: 'Claude Opus 4.6', hint: 'smartest, slowest, costliest' },
-  {
-    value: 'claude-haiku-4-5-20251001',
-    label: 'Claude Haiku 4.5',
-    hint: 'cheap, best for small edits',
-  },
+  { value: 'sonnet', label: 'Claude Sonnet (latest)', hint: 'balanced, fast — currently 4.6' },
+  { value: 'opus', label: 'Claude Opus (latest)', hint: 'smartest, costliest — currently 4.8' },
+  { value: 'haiku', label: 'Claude Haiku (latest)', hint: 'cheap, small edits — currently 4.5' },
 ];
