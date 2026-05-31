@@ -763,6 +763,130 @@ Investigate against the spec's risk list: TS 6 × strict tsconfig (fall back to 
 
 ---
 
+## Addendum A — Fonts (Astro 6 Fonts API) + Svelte (on-demand)
+
+Added after Tasks 4-5 were committed (new user requirements). Executed as Tasks
+10-11 below; Tasks 7 (prompt.ts), 8 (README), and 9 (smoke test) are extended to
+cover them.
+
+### Task 10: Wire the Astro Fonts API into the scaffold (`scaffold.ts`)
+
+**Files:** Modify `src/scaffold.ts` — `astroConfig()`, `layout()`, `globalCss()`.
+
+- [ ] **Step 1:** In `astroConfig()`, import `fontProviders` and add a top-level `fonts` array. The function becomes:
+
+```ts
+function astroConfig(site: string, isPlaceholder: boolean): string {
+  const todo = isPlaceholder ? '  // TODO: set your production URL\n' : '';
+  return `import { defineConfig, fontProviders } from 'astro/config';
+import tailwindcss from '@tailwindcss/vite';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+${todo}  site: '${site}',
+  integrations: [sitemap()],
+  fonts: [
+    {
+      provider: fontProviders.google(),
+      name: 'Inter',
+      cssVariable: '--font-inter',
+      weights: [400, 500, 600, 700],
+    },
+  ],
+  vite: {
+    plugins: [tailwindcss()],
+  },
+});
+`;
+}
+```
+
+- [ ] **Step 2:** In `layout()`, import the `Font` component and render it in `<head>`, and add `font-sans` to the `<body>` class. Update the frontmatter import line and the head/body. The frontmatter top becomes:
+
+```
+import '../styles/global.css';
+import SEO from '../components/SEO.astro';
+import { Font } from 'astro:assets';
+```
+
+Add `<Font cssVariable="--font-inter" />` inside `<head>` (e.g. right after `<meta name="generator" ... />`, before `<SEO ... />`). Change the body open tag to:
+
+```
+  <body class="min-h-screen bg-white font-sans text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
+```
+
+- [ ] **Step 3:** Replace `globalCss()` to define both font roles and a heading base rule:
+
+```ts
+function globalCss(): string {
+  return `@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+  }
+}
+`;
+}
+```
+
+- [ ] **Step 4:** `npm run build && npm run check` — both exit 0. (The generated `.astro`/CSS are validated in Task 9's smoke test, which now also builds the font.)
+
+- [ ] **Step 5:** Commit:
+
+```bash
+git add src/scaffold.ts
+git commit -m "Wire Astro Fonts API (Inter) into scaffold with heading/body roles"
+```
+
+### Task 11: Pin Svelte versions for on-demand use (`stack.ts`)
+
+**Files:** Modify `src/stack.ts` — `STACK` + `STACK_SUMMARY`.
+
+- [ ] **Step 1:** Add two keys to `STACK`:
+
+```ts
+  svelte: '^5.56.0',
+  astrojsSvelte: '^8.1.2',
+```
+
+(insert after `astroCheck: '^0.9.9',`)
+
+- [ ] **Step 2:** Add a line to `STACK_SUMMARY` (after the `astro check` line):
+
+```ts
+  `Svelte ${STACK.svelte} + @astrojs/svelte ${STACK.astrojsSvelte} (on-demand: install only when client-side interactivity is needed)`,
+```
+
+- [ ] **Step 3:** `npm run build && npm run check` — both exit 0.
+
+- [ ] **Step 4:** Commit:
+
+```bash
+git add src/stack.ts
+git commit -m "Pin Svelte + @astrojs/svelte for on-demand interactivity"
+```
+
+### Task 7 extension (prompt.ts) — also add:
+
+- A **Fonts** note: `astro.config.mjs` ships the Astro Fonts API with Inter wired to Tailwind `--font-sans`/`--font-heading`. Instruct the agent to **auto-select a Google Font (or a heading/body pairing) fitting the site's nature/tone**, updating the `fonts` array (+ a second `<Font/>` and `--font-heading` if pairing) — and that leaving Inter is valid.
+- A **Svelte** note: for genuine client-side interactivity, install `@astrojs/svelte` + `svelte` at the pinned versions, register `svelte()`, use `.svelte` with the narrowest `client:*`, and keep all four verification commands green (Biome 2 lints/formats `.svelte`). No React/Vue/vanilla shims.
+
+### Task 8 extension (README) — also document the Fonts API baseline (Inter default, agent auto-selects, heading/body roles) and the Svelte on-demand policy.
+
+### Task 9 extension (smoke test) — after build, also assert the font emitted:
+`grep -rq 'font-inter\|@font-face' "$SMOKE_DIR/dist" && echo "fonts OK"` and confirm self-hosted font files exist under `dist/_astro/` (Astro Fonts API output).
+
 ## Self-Review
 
 - **Spec coverage:** Versions (Tasks 1-4) ✓; Biome v2 migration, scaffold + root (Tasks 1, 4) ✓; SEO component/layout/index/astro.config/robots/sitemap dep (Tasks 4-5) ✓; agentic SEO = JSON-LD + robots, no llms.txt (Tasks 4-5) ✓; site capture prompt/flag/persist/placeholder (Task 6) ✓; model aliases (Task 2) ✓; prompt.ts guidance (Task 7) ✓; README (Task 8) ✓; agent-free smoke verification (Task 9) ✓.

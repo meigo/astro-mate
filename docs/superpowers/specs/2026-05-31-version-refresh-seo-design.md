@@ -53,6 +53,8 @@ scaffold, while preserving the project's "explicit, locked, no guesswork" ethos.
 | Site URL | **New interactive prompt** + `--site` flag, persisted |
 | Model menu | **Tier aliases** (`opus`/`sonnet`/`haiku`), labels show current versions |
 | Tool's own deps | **Bump too** (Part D included) |
+| Fonts | **Astro 6 Fonts API**, self-hosted, wired to Tailwind `--font-sans`. Scaffold default **Inter** (build-safe); the **agent auto-selects** a fitting Google Font per the site's nature |
+| Svelte | **On-demand** (pinned in `stack.ts`, agent installs only when interactivity is needed) |
 
 ## Version Targets
 
@@ -71,6 +73,11 @@ Verified against the npm registry on 2026-05-31. Caret ranges kept; floors raise
 | prettier-plugin-astro | `^0.14.0` | `^0.14.1` | |
 | @astrojs/check | `^0.9.0` | `^0.9.9` | |
 | **@astrojs/sitemap** | — | `^3.7.3` | **new dependency** |
+| **svelte** | — | `^5.56.0` | **new pin** — on-demand only (not installed by scaffold) |
+| **@astrojs/svelte** | — | `^8.1.2` | **new pin** — on-demand only; peer deps `astro ^6`, `ts ^5.3.3 \|\| ^6` ✓ |
+
+Fonts add **no npm dependency** — the Astro 6 Fonts API ships in `astro` itself and
+fetches/self-hosts the Google font at build time.
 
 ### Deploy CLIs (`src/deploy.ts`)
 
@@ -218,6 +225,85 @@ current concrete version as a hint:
   `claude --model` resolves `opus`/`sonnet`/`haiku` to the newest model in each
   tier. A full ID (e.g. `--model claude-opus-4-8`) still works.
 - `.astro-mate.json` stores the alias; `fix` reuses it.
+
+## Fonts (Astro 6 Fonts API)
+
+The scaffold wires the built-in Astro 6 Fonts API (no extra npm dependency; the
+font is fetched and self-hosted at build — no runtime request to Google, no
+layout shift). It defines **two font roles** — body and heading — so a
+heading/body pairing is first-class. Both default to **Inter** (unified,
+build-safe).
+
+- `astro.config.mjs` — adds a top-level `fonts` array and imports
+  `fontProviders` from `astro/config`. The default ships a single Inter entry
+  (one download) used for both roles:
+
+  ```js
+  import { defineConfig, fontProviders } from 'astro/config';
+  // ...
+  fonts: [
+    {
+      provider: fontProviders.google(),
+      name: 'Inter',
+      cssVariable: '--font-inter',
+      weights: [400, 500, 600, 700],
+    },
+  ],
+  ```
+
+- `Layout.astro` — `import { Font } from 'astro:assets';` and render
+  `<Font cssVariable="--font-inter" />` in `<head>`; `<body>` carries the
+  `font-sans` class.
+- `global.css` — define two Tailwind theme variables (creating `font-sans` and
+  `font-heading` utilities), both pointing at the Inter variable by default, and
+  apply the heading variable to `h1`–`h6` via a base rule:
+
+  ```css
+  @import "tailwindcss";
+
+  @theme {
+    --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    --font-heading: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  @layer base {
+    h1, h2, h3, h4, h5, h6 {
+      font-family: var(--font-heading);
+    }
+  }
+  ```
+
+**Single font vs heading/body pairing.** Because both roles default to the same
+Inter variable, the untouched scaffold renders one unified font. To use distinct
+heading and body fonts, the agent points `--font-heading` at a second font: add
+a second entry to the `fonts` array (e.g. a display font with its own
+`cssVariable`), render a second `<Font/>` in `Layout.astro`, and change
+`--font-heading` in `global.css` to reference it.
+
+**Auto-selection by the agent.** The scaffold default (Inter, single font)
+guarantees a green build untouched. The site's *nature* is only known once the
+agent reads the user's prompt, so font personalization happens at the agent
+step: `prompt.ts` instructs the agent to choose a Google Font (or a heading/body
+pairing) whose character fits the site's tone/brand (e.g. a refined serif for a
+law firm, a geometric sans for a SaaS, a rounded humanist sans for a playful
+brand) and update the wired spots (`fonts` entries + `cssVariable`s in
+`astro.config.mjs`, the `<Font/>` tag(s) in `Layout.astro`, and the
+`--font-sans` / `--font-heading` mappings in `global.css`). If the agent leaves
+it, Inter ships for both roles — always valid.
+
+## Svelte (on-demand)
+
+Svelte is the **designated** framework for genuine client-side interactivity,
+but it is **not pre-installed** (most generated sites are static SSG; shipping
+unused deps violates the project ethos). `stack.ts` pins the versions for
+explicitness (`svelte ^5.56.0`, `@astrojs/svelte ^8.1.2` — peers
+`astro ^6`, `ts ^5.3.3 || ^6` ✓). `prompt.ts` tells the agent: when a prompt
+genuinely needs interactivity, install `@astrojs/svelte` + `svelte` at the
+pinned versions, register `svelte()` in `astro.config.mjs`, build the component
+in `.svelte`, and hydrate with the narrowest `client:*` directive that works —
+and keep all four verification commands green (Biome 2 lints/formats `.svelte`;
+do not let new `.svelte` files break `biome check`). Do **not** reach for React,
+Vue, Solid, or vanilla framework shims.
 
 ## Prose Updates
 
