@@ -301,9 +301,10 @@ explicitness (`svelte ^5.56.0`, `@astrojs/svelte ^8.1.2` — peers
 genuinely needs interactivity, install `@astrojs/svelte` + `svelte` at the
 pinned versions, register `svelte()` in `astro.config.mjs`, build the component
 in `.svelte`, and hydrate with the narrowest `client:*` directive that works —
-and keep all four verification commands green (Biome 2 lints/formats `.svelte`;
-do not let new `.svelte` files break `biome check`). Do **not** reach for React,
-Vue, Solid, or vanilla framework shims.
+and keep all four verification commands green. Note that neither Biome
+(`.ts`/`.js`/`.json`) nor Prettier (`.astro`) is configured to cover `.svelte`,
+so the agent must keep that code clean and well-formatted itself. Do **not**
+reach for React, Vue, Solid, or vanilla framework shims.
 
 ## Prose Updates
 
