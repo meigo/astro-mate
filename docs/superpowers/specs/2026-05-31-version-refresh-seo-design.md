@@ -306,6 +306,22 @@ and keep all four verification commands green. Note that neither Biome
 so the agent must keep that code clean and well-formatted itself. Do **not**
 reach for React, Vue, Solid, or vanilla framework shims.
 
+## Accessibility (prompt-guidance approach)
+
+A live-generated site triggered a "Background and foreground colors do not have a
+sufficient contrast ratio" warning. None of the four static checks can catch
+this — contrast is only defined against computed styles in a rendered DOM, so a
+browser-based audit (axe/Lighthouse) would be required to *enforce* it. Adding
+that to the iterate-until-green loop was rejected: full Lighthouse pulls in
+headless Chrome (heavy), its performance scores are non-deterministic (flaky
+gate), and it needs the site served. Decision: address it at the **prompt** layer
+instead — `prompt.ts` Required-outcome item 11 mandates WCAG 2.1 AA contrast
+(≥4.5:1 normal text, ≥3:1 large text), explicitly warns about the muted Tailwind
+shade pairings that fail (`text-*-400/500` on light backgrounds), and requires
+landmarks, single `<h1>`, `alt` text, accessible names, and visible focus. An
+opt-in axe-core audit (reporting-only, outside the gate) remains a possible
+future enhancement if enforcement is later wanted.
+
 ## Headless Agent Robustness (found during live end-to-end run)
 
 The first live `astro-mate new` exposed two issues unrelated to the version/SEO
