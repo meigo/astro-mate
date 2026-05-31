@@ -887,6 +887,31 @@ git commit -m "Pin Svelte + @astrojs/svelte for on-demand interactivity"
 ### Task 9 extension (smoke test) — after build, also assert the font emitted:
 `grep -rq 'font-inter\|@font-face' "$SMOKE_DIR/dist" && echo "fonts OK"` and confirm self-hosted font files exist under `dist/_astro/` (Astro Fonts API output).
 
+## Addendum B — Headless agent robustness (found during the live end-to-end run)
+
+The first live `astro-mate new` revealed the inner `claude -p` agent was hijacked
+by the environment's global brainstorming hook (wrote nothing) while the verify
+loop still reported success on the pristine scaffold. Two fixes (both verified by
+a second live run that built a real site — Playfair Display + Lato, Organization
+JSON-LD, all four gates green, agent committed):
+
+### Task 12: Make the inner agent immune to approval-gated workflows (`runner.ts`)
+- [ ] Add a `NON_INTERACTIVE_DIRECTIVE` constant and pass it via
+  `--append-system-prompt` in the `claude` args (alongside `-p` +
+  `--dangerously-skip-permissions`). `--bare` was rejected (it strips auth).
+- [ ] Verify the agent builds with auth + the publishing-astro-websites skill
+  still loaded.
+
+### Task 13: Close the false-success blind spot (`git-state.ts` + `index.ts`)
+- [ ] New `src/git-state.ts`: `gitHead(cwd)`, `gitDirty(cwd)`,
+  `projectChangedSince(cwd, baselineHead)` (true if HEAD moved or tree dirty;
+  true when git unavailable so it never wrongly blocks).
+- [ ] In `runLoop`: snapshot `gitHead(cwd)` before the loop; after a green
+  verification, require `projectChangedSince` before `printSuccess` — otherwise
+  log a clear failure, feed a corrective message back, and retry.
+- [ ] Verify: untouched scaffold → `projectChangedSince` false (flagged); after a
+  file edit → true.
+
 ## Self-Review
 
 - **Spec coverage:** Versions (Tasks 1-4) ✓; Biome v2 migration, scaffold + root (Tasks 1, 4) ✓; SEO component/layout/index/astro.config/robots/sitemap dep (Tasks 4-5) ✓; agentic SEO = JSON-LD + robots, no llms.txt (Tasks 4-5) ✓; site capture prompt/flag/persist/placeholder (Task 6) ✓; model aliases (Task 2) ✓; prompt.ts guidance (Task 7) ✓; README (Task 8) ✓; agent-free smoke verification (Task 9) ✓.

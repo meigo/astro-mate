@@ -4,6 +4,7 @@ import path from 'node:path';
 import chalk from 'chalk';
 import { DEPLOY_TARGETS, type DeployTarget } from './deploy.js';
 import { askText, collectPrompt, selectOption } from './dialog.js';
+import { gitHead, projectChangedSince } from './git-state.js';
 import { log } from './logger.js';
 import { readProjectConfig, writeProjectConfig } from './project-config.js';
 import { buildPrompt } from './prompt.js';
@@ -223,6 +224,12 @@ async function runLoop(input: LoopInput): Promise<void> {
   let lastVerify: VerifyResult | null = null;
   let lastError: string | undefined;
 
+  // Snapshot before the agent runs. A pristine scaffold passes all four checks,
+  // so "verification green" alone can't distinguish a real build from an agent
+  // that wrote nothing (e.g. one blocked by an approval gate). Require evidence
+  // the agent actually touched the project before declaring success.
+  const baselineHead = gitHead(cwd);
+
   for (let attempt = 1; attempt <= args.maxRetries; attempt++) {
     log.step(`\n═══ Attempt ${attempt} / ${args.maxRetries} ═══`);
 
@@ -256,6 +263,15 @@ async function runLoop(input: LoopInput): Promise<void> {
 
     lastVerify = await verify(cwd);
     if (lastVerify.ok) {
+      if (!projectChangedSince(cwd, baselineHead)) {
+        log.fail('Verification passed, but the agent made no changes to the scaffold.');
+        log.dim('  The checks only pass because the pristine scaffold is already valid.');
+        log.dim('  The agent likely never implemented your prompt (e.g. it was blocked');
+        log.dim('  before writing code). Refusing to report an untouched scaffold as success.');
+        lastError =
+          'The agent did not modify the project. All four checks pass only because the empty scaffold is valid — nothing was built. Implement the requested site (edit src/pages/index.astro and related files), commit your work, then re-run the verification loop.';
+        continue;
+      }
       printSuccess(cwd, attempt);
       return;
     }

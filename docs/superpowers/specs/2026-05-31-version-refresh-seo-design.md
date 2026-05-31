@@ -306,6 +306,35 @@ and keep all four verification commands green. Note that neither Biome
 so the agent must keep that code clean and well-formatted itself. Do **not**
 reach for React, Vue, Solid, or vanilla framework shims.
 
+## Headless Agent Robustness (found during live end-to-end run)
+
+The first live `astro-mate new` exposed two issues unrelated to the version/SEO
+work but fatal to real use:
+
+1. **The inner agent was hijacked by the environment.** astro-mate spawns
+   `claude -p`, which inherits the user's global config — including a superpowers
+   SessionStart hook whose brainstorming skill hard-gates code-writing behind
+   user approval. In non-interactive `-p` mode the agent offered a visual
+   companion and then stalled, writing **zero** code. `--bare` would disable the
+   hook but also strips authentication, so it is unusable.
+   **Fix:** `runner.ts` passes `--append-system-prompt` with a directive stating
+   this is an automated, non-interactive build with no human to approve a design,
+   so any approval-gated workflow does not apply — implement directly. Verified:
+   the agent then builds normally with auth + the publishing-astro-websites
+   skill intact.
+
+2. **The verify loop reported false success.** A pristine scaffold passes all
+   four checks (`astro check` / `biome check` / `prettier check` / `astro
+   build`), so "green" alone could not distinguish a real build from an agent
+   that wrote nothing — astro-mate reported "Site built successfully" on an
+   untouched scaffold.
+   **Fix:** a new `git-state.ts` helper plus a guard in `index.ts` `runLoop`.
+   Before the loop, snapshot `git rev-parse HEAD`. After a green verification,
+   require `projectChangedSince(cwd, baseline)` — HEAD moved or the tree is dirty
+   — before declaring success. If nothing changed, treat it as a failure (feed a
+   clear message back to the agent and retry). When git is unavailable the guard
+   is skipped (cannot prove inaction, so does not block).
+
 ## Prose Updates
 
 - `src/prompt.ts`: tell the agent about `SEO.astro`, the `site` config,
