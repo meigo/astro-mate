@@ -1,5 +1,8 @@
 export const STACK = {
   astro: '^6.4.2',
+  // Pin vite to the range Astro 6.4 supports. @tailwindcss/vite's peer range also
+  // allows vite 8 (rolldown), which is incompatible — force a single vite 7.
+  vite: '^7.3.2',
   tailwind: '^4.3.0',
   sitemap: '^3.7.3',
   biome: '^2.4.16',

@@ -125,6 +125,9 @@ function packageJson(name: string): string {
         'prettier-plugin-astro': STACK.prettierPluginAstro,
         typescript: STACK.typescript,
       },
+      overrides: {
+        vite: STACK.vite,
+      },
     },
     null,
     2,
@@ -183,6 +186,7 @@ function biomeConfig(): string {
       formatter: { enabled: true, indentStyle: 'space', indentWidth: 2, lineWidth: 100 },
       linter: { enabled: true, rules: { recommended: true } },
       javascript: { formatter: { quoteStyle: 'single', semicolons: 'always' } },
+      css: { parser: { tailwindDirectives: true } },
     },
     null,
     2,
@@ -308,11 +312,7 @@ const imageURL = image ? new URL(image, siteURL).href : undefined;
 <meta name="twitter:description" content={description} />
 {imageURL && <meta name="twitter:image" content={imageURL} />}
 
-{
-  jsonLd && (
-    <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />
-  )
-}
+{jsonLd && <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />}
 `;
 }
 
@@ -361,7 +361,9 @@ const defaultJsonLd = {
       jsonLd={jsonLd ?? defaultJsonLd}
     />
   </head>
-  <body class="min-h-screen bg-white font-sans text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
+  <body
+    class="min-h-screen bg-white font-sans text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100"
+  >
     <slot />
   </body>
 </html>
@@ -380,7 +382,9 @@ import Layout from '../layouts/Layout.astro';
   <main class="mx-auto max-w-2xl px-6 py-24">
     <h1 class="text-4xl font-bold tracking-tight">Hello from astro-mate</h1>
     <p class="mt-4 text-lg text-slate-600 dark:text-slate-400">
-      Edit <code class="rounded bg-slate-100 px-1.5 py-0.5 text-sm dark:bg-slate-800">src/pages/index.astro</code>
+      Edit <code class="rounded bg-slate-100 px-1.5 py-0.5 text-sm dark:bg-slate-800"
+        >src/pages/index.astro</code
+      >
       to begin.
     </p>
   </main>
