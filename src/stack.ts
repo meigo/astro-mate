@@ -7,6 +7,8 @@ export const STACK = {
   prettierPluginAstro: '^0.14.1',
   typescript: '^6.0.0',
   astroCheck: '^0.9.9',
+  svelte: '^5.56.0',
+  astrojsSvelte: '^8.1.2',
 } as const;
 
 export const SKILL_REPO =
@@ -21,6 +23,7 @@ export const STACK_SUMMARY = [
   `Prettier ${STACK.prettier} + prettier-plugin-astro ${STACK.prettierPluginAstro} (format for .astro)`,
   `TypeScript ${STACK.typescript} (strict)`,
   '`astro check` for type-checking .astro files',
+  `Svelte ${STACK.svelte} + @astrojs/svelte ${STACK.astrojsSvelte} (on-demand: install only when client-side interactivity is needed)`,
 ].join(', ');
 
 export const MODEL_OPTIONS: { value: string; label: string; hint?: string }[] = [
