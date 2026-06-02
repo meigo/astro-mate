@@ -1,6 +1,6 @@
 {
   "name": "astro-mate",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Focused CLI that generates Astro v6 + Tailwind v4 sites with Claude Code. Explicit stack, no guesswork.",
   "type": "module",
   "bin": {
